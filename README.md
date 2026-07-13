@@ -114,6 +114,14 @@ DeFB/
 │   ├── train_yolo_eye.py       #   训练脚本
 │   ├── extract_eyes.py         #   眼部裁剪提取
 │   └── prepare_yolo_data.py    #   数据集准备
+├── api/                        # REST API 服务 (FastAPI)
+│   ├── main.py                 #   API 入口 + 路由定义
+│   ├── model.py                #   YOLO 推理封装 (单例模式)
+│   ├── schemas.py              #   Pydantic 请求/响应模型
+│   ├── config.py               #   环境变量配置
+│   └── requirements.txt        #   API 独立依赖
+├── Dockerfile                  # 容器化部署
+├── docker-compose.yml          # Docker Compose 编排
 ├── mediapipe/                  # MediaPipe 眼部提取 (对照方案)
 ├── newtest/                    # RT-DETRv2 Lite 实验脚本
 ├── alternative_yolo/           # YOLO 数据集配置
@@ -180,6 +188,109 @@ python src/tools/train.py -c src/configs/rtdetrv2/detrs-blink_len=10_mpeblinkv1.
 python src/blink/train_blink_detector.py --config src/configs/BlinkModule/full_v1.py
 python src/blink/test_eval.py
 ```
+
+## REST API 服务 (FastAPI)
+
+项目提供基于 **FastAPI** 的推理服务，支持 HTTP 接口调用眼部检测模型。
+
+### API 端点
+
+| 方法 | 路径 | 功能 |
+|------|------|------|
+| `GET` | `/api/v1/health` | 健康检查 / 模型状态 |
+| `POST` | `/api/v1/detect` | 上传图片 → 返回 JSON 检测结果 |
+| `POST` | `/api/v1/detect/image` | 上传图片 → 返回标注后的图片 |
+| `GET` | `/docs` | Swagger UI 交互式文档 |
+
+### 本地运行
+
+```bash
+# 1. 安装 API 依赖
+pip install -r api/requirements.txt
+
+# 2. 放置模型权重到 output/yolo_eye_training/eye_detect/weights/best.pt
+#    或通过环境变量指定路径
+export MODEL_PATH=/path/to/best.pt
+
+# 3. 启动服务
+python -m api.main
+# 或
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# 4. 打开浏览器访问 http://localhost:8000/docs
+```
+
+### 调用示例
+
+```bash
+# 健康检查
+curl http://localhost:8000/api/v1/health
+
+# 检测图片 (返回 JSON)
+curl -X POST http://localhost:8000/api/v1/detect \
+  -F "file=@test.jpg" \
+  -F "conf=0.15"
+
+# 检测图片 (返回标注图片)
+curl -X POST http://localhost:8000/api/v1/detect/image \
+  -F "file=@test.jpg" \
+  -o result.png
+```
+
+### JSON 响应示例
+
+```json
+{
+  "success": true,
+  "image_width": 640,
+  "image_height": 480,
+  "detection_count": 2,
+  "detections": [
+    {
+      "class_id": 0,
+      "class_name": "left_eye",
+      "confidence": 0.852,
+      "bbox": {"x1": 120.5, "y1": 80.3, "x2": 180.2, "y2": 130.7}
+    },
+    {
+      "class_id": 1,
+      "class_name": "right_eye",
+      "confidence": 0.615,
+      "bbox": {"x1": 420.1, "y1": 82.0, "x2": 480.5, "y2": 131.4}
+    }
+  ],
+  "inference_time_ms": 12.3,
+  "model_name": "best.pt"
+}
+```
+
+### Docker 部署
+
+```bash
+# 1. 创建权重目录并放入模型文件
+mkdir -p weights
+cp output/yolo_eye_training/eye_detect/weights/best.pt weights/
+
+# 2. 构建并启动
+docker-compose up --build -d
+
+# 3. 查看日志
+docker logs -f debf-eye-detection
+
+# 4. 停止
+docker-compose down
+```
+
+### 环境变量配置
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `MODEL_PATH` | `output/.../best.pt` | 模型权重路径 |
+| `CONF_THRESHOLD` | `0.15` | 置信度阈值 |
+| `IOU_THRESHOLD` | `0.45` | NMS IoU 阈值 |
+| `IMAGE_SIZE` | `640` | 推理输入尺寸 |
+| `API_HOST` | `0.0.0.0` | 服务监听地址 |
+| `API_PORT` | `8000` | 服务监听端口 |
 
 ## 数据集
 

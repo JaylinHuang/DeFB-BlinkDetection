@@ -1,0 +1,32 @@
+# DeFB API — Docker Compose
+# Usage:
+#   1. Place best.pt in ./weights/ directory
+#   2. docker-compose up --build
+#   3. Open http://localhost:8000/docs
+
+version: "3.8"
+
+services:
+  debf-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: debf-eye-detection
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount model weights (place best.pt in ./weights/)
+      - ./weights:/app/weights:ro
+      # Mount test images (optional)
+      - ./test_images:/app/test_images:ro
+    environment:
+      - MODEL_PATH=/app/weights/best.pt
+      - CONF_THRESHOLD=0.15
+      - IOU_THRESHOLD=0.45
+      - IMAGE_SIZE=640
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

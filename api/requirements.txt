@@ -1,0 +1,11 @@
+# === FastAPI Service Dependencies ===
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+pydantic>=2.5.0
+
+# === YOLO / CV (already in requirements.txt, listed here for Docker) ===
+ultralytics>=8.0.0
+opencv-python-headless>=4.6.0
+numpy>=1.23.0
+Pillow>=9.0.0

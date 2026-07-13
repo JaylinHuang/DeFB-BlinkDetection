@@ -1,0 +1,36 @@
+# DeFB Eye Detection API — .dockerignore
+# Exclude large/unnecessary files from Docker build context
+
+# Datasets
+*.gz
+*.tar
+*.zip
+datasets/
+alternative_yolo/
+
+# Model weights (mounted via volume, not baked into image)
+output/
+*.pt
+*.onnx
+*.engine
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+
+# Documentation (not needed in container)
+docs/
+*.pdf
+*.docx
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test results
+demo_result_*.jpg
