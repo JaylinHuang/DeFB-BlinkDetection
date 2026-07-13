@@ -1,0 +1,84 @@
+# =====================
+# Python
+# =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# =====================
+# Datasets (too large for git)
+# =====================
+*.gz
+*.tar
+*.tar.gz
+*.zip
+alternative_yolo/datasets/chunk_*
+alternative_yolo/datasets/eye_detection/images/
+alternative_yolo/datasets/eye_detection/labels/
+alternative_yolo/datasets/eye_detection_small/images/
+alternative_yolo/datasets/eye_detection_small/labels/
+
+# =====================
+# Model weights (too large for git)
+# =====================
+*.pt
+*.pth
+*.onnx
+*.engine
+yolov8n.pt
+yolov8s_pt.pt
+
+# =====================
+# Output data (.npy arrays, training outputs)
+# =====================
+output/**/*.npy
+output/**/*.png
+output/**/*.jpg
+output/yolo_eye_training/eye_detect/weights/
+output/yolo_eye_training/eye_detect/args.yaml
+
+# Keep training curves and results CSV for reference
+!output/yolo_eye_training/eye_detect/results.csv
+!output/yolo_eye_training/eye_detect/results.png
+!output/yolo_eye_training/eye_detect/BoxF1_curve.png
+!output/yolo_eye_training/eye_detect/BoxPR_curve.png
+!output/yolo_eye_training/eye_detect/BoxP_curve.png
+!output/yolo_eye_training/eye_detect/BoxR_curve.png
+!output/yolo_eye_training/eye_detect/confusion_matrix.png
+!output/yolo_eye_training/eye_detect/confusion_matrix_normalized.png
+!output/yolo_eye_training/eye_detect/labels.jpg
+!output/yolo_eye_training/eye_detect/train_batch*.jpg
+!output/yolo_eye_training/eye_detect/val_batch*.jpg
+
+# =====================
+# MediaPipe model file
+# =====================
+mediapipe/face_landmarker.task
+
+# =====================
+# IDE / Editor
+# =====================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# =====================
+# OS
+# =====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =====================
+# WorkBuddy / temporary
+# =====================
+.workbuddy/

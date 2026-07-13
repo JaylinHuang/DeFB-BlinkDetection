@@ -1,0 +1,113 @@
+# RT-DETRv2 Nano training config - 10 videos, 50 epochs
+# MobileNetV3-Small backbone (2.6M params)
+
+task: detection
+
+data_path: E:/documents/mssb code/mpeblink2.0/mpeblink_lite
+output_dir: ./output/nano_train_1-10
+
+epoches: 20
+last_epoch: 0
+print_freq: 20
+checkpoint_freq: 10
+
+sync_bn: False
+find_unused_parameters: False
+use_amp: False
+use_ema: False
+clip_max_norm: 0.1
+
+criterion: RTDETRCriterionv2
+RTDETRCriterionv2:
+  weight_dict:
+    loss_vfl: 1
+    loss_bbox_head: 5
+    loss_giou_head: 2
+    loss_bbox_eye: 5
+    loss_giou_eye: 2
+  losses: ['vfl', 'boxes']
+  alpha: 0.75
+  gamma: 2.0
+  matcher:
+    type: HungarianMatcher
+    weight_dict:
+      cost_class: 2
+      cost_bbox: 5
+      cost_giou: 2
+    alpha: 0.25
+    gamma: 2.0
+
+postprocessor: RTDETRPostProcessor
+RTDETRPostProcessor:
+  num_top_queries: 50
+
+optimizer:
+  type: AdamW
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm).*$'
+      lr: 0.00001
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn)).*$'
+      weight_decay: 0.
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+
+lr_scheduler:
+  type: MultiStepLR
+  milestones: [10, 16]
+  gamma: 0.1
+
+lr_warmup_scheduler:
+  type: LinearWarmup
+  warmup_duration: 200
+
+# ---- Train (10 videos, 24 persons) ----
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: MPEblinkV2Dataset
+    img_fold: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/train_rawframes/
+    ann_file: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/annotations/train_mini.json
+    clip_length: 4
+    infer_length: 4
+    stride: 3
+    frame_interval: 2
+    transforms:
+      type: Compose
+      ops:
+        - {type: ConvertPILImage, dtype: 'float32', scale: true}
+      policy:
+        name: default
+  collate_fn:
+    type: BatchImageCollateFuncion
+  shuffle: True
+  total_batch_size: 1
+  num_workers: 0
+
+# ---- Val (same 10 videos, for loss monitoring) ----
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: MPEblinkV2Dataset
+    img_fold: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/train_rawframes/
+    ann_file: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/annotations/train_mini.json
+    clip_length: 4
+    infer_length: 4
+    stride: 5
+    frame_interval: 2
+    transforms:
+      type: Compose
+      ops:
+        - {type: ConvertPILImage, dtype: 'float32', scale: true}
+      policy:
+        name: default
+  collate_fn:
+    type: BatchImageCollateFuncion
+  shuffle: False
+  total_batch_size: 1
+  num_workers: 0
+
+use_focal_loss: True
+eval_spatial_size: [720, 1280]

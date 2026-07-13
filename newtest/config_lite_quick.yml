@@ -1,0 +1,111 @@
+# Quick test config - 5 train + 3 val videos, clip_length=4 for speed
+task: detection
+
+data_path: E:/documents/mssb code/mpeblink2.0/mpeblink_lite
+output_dir: ./output/lite_quick
+
+epoches: 1
+last_epoch: 0
+print_freq: 5
+checkpoint_freq: 1
+
+sync_bn: False
+find_unused_parameters: False
+use_amp: False
+use_ema: False
+clip_max_norm: 0.1
+
+# Model is injected by train_lite.py
+# Criterion
+criterion: RTDETRCriterionv2
+RTDETRCriterionv2:
+  weight_dict:
+    loss_vfl: 1
+    loss_bbox_head: 5
+    loss_giou_head: 2
+    loss_bbox_eye: 5
+    loss_giou_eye: 2
+  losses: ['vfl', 'boxes']
+  alpha: 0.75
+  gamma: 2.0
+  matcher:
+    type: HungarianMatcher
+    weight_dict:
+      cost_class: 2
+      cost_bbox: 5
+      cost_giou: 2
+    alpha: 0.25
+    gamma: 2.0
+
+postprocessor: RTDETRPostProcessor
+RTDETRPostProcessor:
+  num_top_queries: 50
+
+optimizer:
+  type: AdamW
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm).*$'
+      lr: 0.00001
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn)).*$'
+      weight_decay: 0.
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+
+lr_scheduler:
+  type: MultiStepLR
+  milestones: [10]
+  gamma: 0.1
+
+lr_warmup_scheduler:
+  type: LinearWarmup
+  warmup_duration: 50
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: MPEblinkV2Dataset
+    img_fold: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/train_rawframes/
+    ann_file: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/annotations/train_mini.json
+    clip_length: 4
+    infer_length: 4
+    stride: 1
+    frame_interval: 2
+    transforms:
+      type: Compose
+      ops:
+        - {type: ConvertPILImage, dtype: 'float32', scale: true}
+      policy:
+        name: default
+  collate_fn:
+    type: BatchImageCollateFuncion
+  shuffle: True
+  total_batch_size: 1
+  num_workers: 0
+
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: MPEblinkV2Dataset
+    img_fold: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/val_rawframes/
+    ann_file: E:/documents/mssb code/mpeblink2.0/mpeblink_lite/annotations/val_mini.json
+    clip_length: 4
+    infer_length: 4
+    stride: 1
+    frame_interval: 2
+    transforms:
+      type: Compose
+      ops:
+        - {type: ConvertPILImage, dtype: 'float32', scale: true}
+      policy:
+        name: default
+  collate_fn:
+    type: BatchImageCollateFuncion
+  shuffle: False
+  total_batch_size: 1
+  num_workers: 0
+
+use_focal_loss: True
+eval_spatial_size: [720, 1280]  # updated from 640x360 to 1280x720

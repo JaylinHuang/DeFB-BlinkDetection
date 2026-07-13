@@ -1,0 +1,11 @@
+# YOLOv8 Eye Detection Dataset
+# Auto-generated from WFLW 68-point landmarks
+
+path: .
+train: train.txt
+val: val.txt
+
+nc: 2
+names:
+  0: left_eye
+  1: right_eye

@@ -1,0 +1,28 @@
+# DeFB — 服务器运行依赖
+# 镜像: Ubuntu 22.04 / CUDA 12.8.1 / Python 3.12 / PyTorch 2.10.0
+# torch 和 torchvision 由镜像预装, 无需在此列出
+#
+# 安装: pip install -r requirements.txt
+
+# === 人眼定位 方案B: MediaPipe ===
+mediapipe>=0.10.18
+
+# === 人眼定位 方案C: YOLOv8-Nano ===
+ultralytics>=8.0.0
+
+# === 图像/数值处理 ===
+opencv-python>=4.6.0
+numpy>=1.23.0
+Pillow>=9.0.0
+
+# === 配置 / 日志 ===
+PyYAML>=5.3.0
+tensorboard>=2.10.0
+
+# === COCO 评估 (原框架依赖) ===
+scipy>=1.7.0
+pycocotools>=2.0.0
+
+# === ONNX 导出 (可选) ===
+onnx>=1.14.0
+onnxruntime-gpu>=1.15.0
